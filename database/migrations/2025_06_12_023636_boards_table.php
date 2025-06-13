@@ -12,11 +12,12 @@ return new class extends Migration
     public function up(): void{
         Schema::create('boards', function (Blueprint $table) {
             $table->id();
+            $table->timestamp('updated_at');
             $table->timestamp('created_at');
             $table->string('title');
-            $table->integer('user')->unsigned();    
+            $table->integer('user_id')->unsigned();    
 
-            $table->foreign('user')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

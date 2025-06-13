@@ -8,8 +8,12 @@ class Board extends Model {
 
     protected $fillable = [
         'title',
-        'user'
+        'user_id'
     ];
+
+    public function user(){
+        return $this->belongsTo(User::class, 'user_id');
+    }
 
     public function categories() {
         return $this->hasMany(Category::class);

@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Resources\BoardResource;
 use App\Models\Board;
 use App\Services\Board\BoardService;
+use App\Resources\BoardResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class BoardController extends Controller {
     
@@ -19,26 +21,52 @@ class BoardController extends Controller {
     }
 
     public function index(): JsonResponse {
-        $boards = $this->boardService->getAll(auth()->user());
+        $boards = $this->boardService->getAll(Auth::user());
+        
+        if ($boards->isEmpty()) {
+            return response()->json(['message' => 'Board not found.']);
+        }
+
         return response()->json(BoardResource::collection($boards));
     }
 
-    public function store(Request $request){
-        $board = $this->boardService->create($request->validated(), auth()->user());
+    public function show(int $id): JsonResponse {
+        $board = $this->boardService->getById($id, Auth::user());
+        
+        if (!$board) {
+            return response()->json(['message' => 'Board not found']);
+        }
+
+        return response()->json(new BoardResource($board));
+    }
+
+    public function store(Request $request): JsonResponse{
+        $data = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+        ])->validate();
+
+        $board = $this->boardService->create($data, Auth::user());
         return response()->json(new BoardResource($board), 201);
     }
     
     public function update(Request $request, Board $board){
-        $this->authorize('update', $board);
+        $this->authorize($board);
         $board = $this->boardService->update($board, $request->validated());
         
         return response()->json(new BoardResource($board));
     }
 
     public function destroy(Board $board): JsonResponse {
-        $this->authorize('delete', $board);
+        $this->authorize($board);
         $this->boardService->delete($board);
         
         return response()->json(null, 204);
+    }
+
+    private function authorize(Board $board)
+    {
+        if ($board->user_id !== Auth::id()) {
+             return response()->json(['message' => 'Unathorized']);
+        }
     }
 }

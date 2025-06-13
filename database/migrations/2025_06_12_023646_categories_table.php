@@ -14,9 +14,9 @@ return new class extends Migration
             $table->id();
             $table->timestamp('created_at');
             $table->string('title');
-            $table->integer('board')->unsigned();    
+            $table->integer('board_id')->unsigned();    
 
-            $table->foreign('board')->references('id')->on('boards');
+            $table->foreign('board_id')->references('id')->on('boards')->onDelete('cascade');
         });
     }
 
