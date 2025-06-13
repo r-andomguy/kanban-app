@@ -14,9 +14,11 @@ return new class extends Migration
             $table->id();
             $table->timestamp('updated_at');
             $table->timestamp('created_at');
-            $table->string('title')->unique();
-            $table->integer('category_id')->unsigned();    
-
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->integer('status')->comment('To Do / In Progress / Done')->default(1);
+             $table->integer('category_id')->unsigned();    
+            
             $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
         });
     }

@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\ApiController;
 use App\Models\Board;
 use App\Services\BoardService;
 use App\Resources\BoardResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
-class BoardController extends Controller {
+class BoardController extends ApiController {
     
     protected BoardService $boardService;
 
@@ -41,10 +41,11 @@ class BoardController extends Controller {
     }
 
     public function store(Request $request): JsonResponse{
-        $data = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-        ])->validate();
+        $data = $request->validate([
+           'title' => 'required|string|max:255',
+        ]);
 
+        
         $board = $this->boardService->create($data, Auth::user());
         return response()->json(new BoardResource($board), 201);
     }
@@ -52,9 +53,9 @@ class BoardController extends Controller {
     public function update(Request $request, Board $board){
         $this->authorize($board);
        
-        $data = Validator::make($request->all(), [
-            'title' => 'required|string|max:255',
-        ])->validate();
+        $data = $request->validate([
+           'title' => 'required|string|max:255',
+        ]);
 
         $board = $this->boardService->update($board, $data);
         

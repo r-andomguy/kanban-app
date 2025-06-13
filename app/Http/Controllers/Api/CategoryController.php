@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Api\ApiController;
 use App\Resources\CategoryResource;
 use App\Services\CategoryService;
 use App\Models\Board;
@@ -9,14 +10,14 @@ use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Routing\Controller;
 
-class CategoryController extends Controller
+class CategoryController extends ApiController
 {
   protected CategoryService $categoryService;
 
     public function __construct(CategoryService $categoryService)
     {
+        $this->middleware('auth:sanctum');
         $this->categoryService = $categoryService;
     }
 

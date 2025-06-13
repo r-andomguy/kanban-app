@@ -2,49 +2,92 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Task;
+use App\Http\Controllers\Api\ApiController;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Board;
+use App\Models\Category;
+use App\Models\Task;
+use App\Services\TaskService;
+use App\Resources\TaskResource;
 
-class TaskController extends Controller
+class TaskController extends ApiController
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    protected TaskService $taskService;
+
+   public function __construct(TaskService $taskService) {
+        $this->middleware('auth:sanctum');
+        $this->taskService = $taskService;
+   }
+
+    public function index(Board $board, Category $category): JsonResponse
     {
-        //
+        $this->authorize($board);
+        $tasks = $this->taskService->getAll($category);
+
+        return response()->json(TaskResource::collection($tasks));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function show(Board $board, Category $category, Task $task): JsonResponse
     {
-        //
+        $this->authorize($board);
+        $task = $this->taskService->getById($task->id,  $category);
+        
+        if (!$task) {
+            return response()->json(['message' => 'Task not found.'], 404);
+        }
+        
+        return response()->json(new TaskResource($task));
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Task $task)
+    public function store(Request $request, Board $board, Category $category): JsonResponse
     {
-        //
+        $this->authorize( $board);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'required|integer|in:1,2,3',
+        ]);
+
+        $task = $this->taskService->create($category, $data);
+
+        return response()->json(new TaskResource($task), 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Task $task)
+    public function update(Request $request, Board $board, Category $category, Task $task): JsonResponse
     {
-        //
+        $this->authorize($board);
+
+        $data = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'nullable|string',
+            'status' => 'sometimes|required|in:1,2,3',
+        ]);
+
+        $updatedTask = $this->taskService->update($task,$category, $data);
+
+        return response()->json(new TaskResource($updatedTask));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Task $task)
+    public function destroy(Board $board, Category $category, Task $task): JsonResponse
     {
-        //
+        $this->authorize( $board);
+            
+        if ($task->category_id !== $category->id) {
+            return response()->json(['message' => 'Task not found in this category.'], 404);
+        }
+
+        $task->delete();
+
+        return response()->json(['message' => 'Task deleted successfully.']);
+    }
+
+    private function authorize(Board $board)
+    {
+        if ($board->user_id !== Auth::id()) {
+             return response()->json(['message' => 'Unathorized']);
+        }
     }
 }
