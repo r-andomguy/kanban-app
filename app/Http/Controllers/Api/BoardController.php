@@ -51,7 +51,12 @@ class BoardController extends Controller {
     
     public function update(Request $request, Board $board){
         $this->authorize($board);
-        $board = $this->boardService->update($board, $request->validated());
+       
+        $data = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+        ])->validate();
+
+        $board = $this->boardService->update($board, $data);
         
         return response()->json(new BoardResource($board));
     }

@@ -30,8 +30,11 @@ class BoardService {
     }
 
     public function update(Board $board, array $data): Board {
-        $board->update($data);
-        return $board;
+        Board::where('id', $board->id)->update([
+            'title' => $data['title']
+        ]);
+        
+        return $board->fresh();
     }
 
     public function delete(Board $board): void {
