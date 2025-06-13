@@ -12,8 +12,10 @@ return new class extends Migration
     public function up(): void{
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->timestamp('updated_at');
             $table->timestamp('created_at');
             $table->string('title');
+            $table->integer('order');
             $table->integer('board_id')->unsigned();    
 
             $table->foreign('board_id')->references('id')->on('boards')->onDelete('cascade');

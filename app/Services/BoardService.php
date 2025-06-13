@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Board;
+namespace App\Services;
 
 use App\Models\Board;
 use App\Models\User;
@@ -31,7 +31,7 @@ class BoardService {
 
     public function update(Board $board, array $data): Board {
         Board::where('id', $board->id)->update([
-            'title' => $data['title']
+            'title' => $data['title'] ?? $board->title
         ]);
         
         return $board->fresh();
