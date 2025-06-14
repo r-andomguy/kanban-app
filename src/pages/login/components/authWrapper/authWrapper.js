@@ -43,30 +43,37 @@ class AuthWrapper extends HTMLElement {
   }
 
 
-  renderRegister() {
-    this.innerHTML = `<register-form></register-form>`;
-    this.querySelector('register-form').addEventListener('register-submitted', async e => {
-      const { name, email, password, passwordConfirmation } = e.detail;
-      const container = this.closest('.container');
+ renderRegister() {
+  this.innerHTML = `<register-form></register-form>`;
 
-      try {
-        await handleRegister({ name, email, password, passwordConfirmation });
+  const registerForm = this.querySelector('register-form');
 
-        container.dispatchEvent(new CustomEvent('register-result', {
-          detail: { success: true, message: 'Cadastro realizado com sucesso!' },
-          bubbles: true,
-          composed: true,
-        }));
+  registerForm.addEventListener('show-login', () => {
+    this.renderLogin();
+  });
 
-        this.renderLogin();
-      } catch (err) {
-        container.dispatchEvent(new CustomEvent('register-result', {
-          detail: { success: false, message: err.message || 'Erro ao cadastrar usuário.' },
-          bubbles: true,
-          composed: true,
-        }));
-      }
-    });
+  registerForm.addEventListener('register-submitted', async e => {
+    const { name, email, password, passwordConfirmation } = e.detail;
+    const container = this.closest('.container');
+
+    try {
+      await handleRegister({ name, email, password, passwordConfirmation });
+
+      container.dispatchEvent(new CustomEvent('register-result', {
+        detail: { success: true, message: 'Cadastro realizado com sucesso!' },
+        bubbles: true,
+        composed: true,
+      }));
+
+      this.renderLogin();
+    } catch (err) {
+      container.dispatchEvent(new CustomEvent('register-result', {
+        detail: { success: false, message: err.message || 'Erro ao cadastrar usuário.' },
+        bubbles: true,
+        composed: true,
+      }));
+    }
+  });
   }
 }
 

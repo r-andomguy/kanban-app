@@ -1,4 +1,12 @@
 import $ from 'jquery';
+import './home.style.scss'
+import 'bootstrap/dist/js/bootstrap.bundle.min';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './components/sidebar/sidebar.js'
+import './components/emptyBoard/emptyBoard.js'
+import './components/createBoardModal/createBoardModal.js'
+import './components/userBoard/userBoardWrapper.js'
+import './components/boardComponent/boardComponent.js'
 
 export function loadHome() {
   fetch('./pages/home/home.index.html')

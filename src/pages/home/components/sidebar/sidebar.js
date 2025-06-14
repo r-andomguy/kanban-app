@@ -1,45 +1,88 @@
-class RegisterForm extends HTMLElement {
+class SideBar extends HTMLElement {
   constructor() {
     super();
+    this.boards = [];
+    this.currentBoardId = null;
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  setBoards(boards) {
+    this.boards = boards;
+    this.render();
+    this.setupEventListeners();
+  }
+
+  setCurrentBoard(boardId) {
+    this.currentBoardId = boardId;
+    this.highlightCurrentBoard();
+    this.dispatchEvent(new CustomEvent('board-changed', { 
+      detail: { boardId } 
+    }));
+  }
+
+  highlightCurrentBoard() {
+    this.querySelectorAll('.board-link').forEach(link => {
+      link.classList.toggle('active', 
+        link.dataset.boardId === this.currentBoardId);
+    });
+  }
+
+  render() {
     this.innerHTML = `
-        <nav class="navbar bg-body-tertiary fixed-top">
+      <nav class="navbar bg-body-tertiary fixed-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Offcanvas navbar</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+          <a class="navbar-brand" href="#">Kanban App</a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" 
+            data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
             <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Offcanvas</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Link</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Dropdown
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li>
-                                <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                        </ul>
-                    </li>
-                    </ul>
-                </div>
+          </button>
+          <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
+            <div class="offcanvas-header">
+              <h5 class="offcanvas-title">Meus Boards</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
+            <div class="offcanvas-body">
+              <ul class="navbar-nav flex-grow-1 pe-3">
+                <li class="nav-item">
+                </li>
+                <li class="nav-item dropdown">
+                  <a class="nav-link dropdown-toggle" href="#" role="button" 
+                    data-bs-toggle="dropdown">
+                    Todos os Boards
+                  </a>
+                  <ul class="dropdown-menu" id="boards-dropdown">
+                    ${this.boards.map(board => `
+                      <li>
+                        <a class="dropdown-item board-link" href="#" 
+                          data-board-id="${board.id}">
+                          ${board.title}
+                        </a>
+                      </li>
+                    `).join('')}
+                  </ul>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
-        </nav>
+      </nav>
     `;
   }
+
+  setupEventListeners() {
+    this.querySelectorAll('.board-link').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.setCurrentBoard(e.target.dataset.boardId);
+        bootstrap.Offcanvas.getInstance(
+          this.querySelector('#offcanvasNavbar')
+        ).hide();
+      });
+    });
+  }
 }
+
 customElements.define('side-bar', SideBar);
