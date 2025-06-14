@@ -1,4 +1,4 @@
-import '../style/styles.scss'
+import '../style/style.scss'
 import { initRouter } from '../core/router'
 import $ from 'jquery';
 import 'jqueryrouter';
