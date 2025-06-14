@@ -1,4 +1,8 @@
 import $ from 'jquery';
+import './components/loginForm/loginForm.js';
+import './components/registerForm/registerForm.js';
+import './components/authWrapper/authWrapper.js';
+import './login.style.scss';
 
 export function loadLogin() {
   fetch('./pages/login/login.index.html')
@@ -6,17 +10,6 @@ export function loadLogin() {
     .then(html => {
       $('#app').html(html);
       console.log('Página de login carregada');
-      
-      $('#loginForm').on('submit', (e) => {
-        e.preventDefault();
-        const email = $('#email').val();
-        const password = $('#password').val();
-        if (email === 'admin' && password === '123') {
-          location.hash = '#/home';
-        } else {
-          alert('Credenciais inválidas');
-        }
-      });
     })
     .catch(error => {
       console.error('Erro ao carregar login:', error);
