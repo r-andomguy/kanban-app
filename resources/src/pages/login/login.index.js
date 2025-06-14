@@ -10,6 +10,31 @@ export function loadLogin() {
     .then(html => {
       $('#app').html(html);
       console.log('Página de login carregada');
+
+      const $bgLogin = $('#app').find('.bg-login');
+      const $loginError = $bgLogin.find('#login-error');
+      const $loginSuccess = $bgLogin.find('#login-success');
+
+      const showAlert = ($el, message) => {
+        $el.text(message).removeClass('d-none');
+      };
+
+      const hideAlerts = () => {
+        $loginError.addClass('d-none');
+        $loginSuccess.addClass('d-none');
+      };
+
+      $bgLogin.on('login-result', (event) => {
+        hideAlerts();
+        const { success, message } = event.originalEvent.detail;
+
+        if (success) {
+          showAlert($loginSuccess, message);
+        } else {
+          showAlert($loginError, message);
+        }
+      });
+
     })
     .catch(error => {
       console.error('Erro ao carregar login:', error);
