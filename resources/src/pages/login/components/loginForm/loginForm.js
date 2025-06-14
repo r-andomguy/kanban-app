@@ -1,4 +1,6 @@
 import $ from 'jquery';
+import { updateValidationUI } from '../../../../utils/updateValidationUI/updateValidationUI';
+import { validateEmail } from '../../../../utils/validateEmail/validateEmail';
 
 class LoginForm extends HTMLElement {
   constructor() {
@@ -28,85 +30,71 @@ class LoginForm extends HTMLElement {
     `;
   }
 
-setupEvents() {
-  const $form = $(this).find('#login-form');
-  const $email = $(this).find('#email');
-  const $password = $(this).find('#password');
-  const $submitBtn = $form.find('button[type="submit"]');
-  const $emailAlert = $(this).find('#email-alert');
+  setupEvents() {
+    const $form = $(this).find('#login-form');
 
-  const validateEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const $fields = {
+      email: $('#email', this),
+      password: $('#password', this),
+      submitBtn: $('button[type="submit"]', $form),
+      emailAlert: $('#email-alert', this),
+      toRegisterLink: $('#to-register', this),
+    };
 
-  const updateValidationUI = ($input, $alert, isValid, message = '') => {
-    const value = $input.val().trim();
+    const getTrimmedValues = () => ({
+      email: $fields.email.val().trim(),
+      password: $fields.password.val().trim(),
+    });
 
-    if (!value) {
-      $input.removeClass('is-valid is-invalid');
-      $alert.addClass('d-none').text('');
-      return;
-    }
+    const toggleSubmitButtonState = () => {
+      const { email, password } = getTrimmedValues();
+      const isFormValid = validateEmail(email) && password.length > 0;
+      $fields.submitBtn.prop('disabled', !isFormValid);
+    };
 
-    $input.toggleClass('is-valid', isValid);
-    $input.toggleClass('is-invalid', !isValid);
+    const validateEmailInput = () => {
+      const { email } = getTrimmedValues();
+      const isValid = !email || validateEmail(email);
+      const message = email ? 'Por favor, insira um e-mail válido.' : '';
+      updateValidationUI($fields.email, $fields.emailAlert, isValid, message);
+    };
 
-    if (!isValid && message) {
-      $alert.text(message).removeClass('d-none');
-    } else {
-      $alert.addClass('d-none').text('');
-    }
-  };
+    $fields.email.on('input', () => {
+      validateEmailInput();
+      toggleSubmitButtonState();
+    });
 
+    $fields.password.on('input', toggleSubmitButtonState);
 
-  const toggleSubmitButtonState = () => {
-    const emailVal = $email.val().trim();
-    const passVal = $password.val().trim();
-    const isFormValid = validateEmail(emailVal) && passVal.length > 0;
-    $submitBtn.prop('disabled', !isFormValid);
-  };
+    $form.on('submit', e => {
+      e.preventDefault();
+      const { email, password } = getTrimmedValues();
 
-  $email.on('input', () => {
-    const emailVal = $email.val().trim();
-    if (!emailVal) {
-      updateValidationUI($email, $emailAlert, true);
-    } else {
-      updateValidationUI($email, $emailAlert, validateEmail(emailVal), 'Por favor, insira um e-mail válido.');
-    }
+      if (!email) {
+        updateValidationUI($fields.email, $fields.emailAlert, false, 'Por favor, insira seu e-mail.');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        updateValidationUI($fields.email, $fields.emailAlert, false, 'Por favor, insira um e-mail válido.');
+        return;
+      }
+
+      updateValidationUI($fields.email, $fields.emailAlert, true);
+
+      this.dispatchEvent(new CustomEvent('login-submitted', {
+        detail: { email, password },
+        bubbles: true,
+      }));
+    });
+
+    $fields.toRegisterLink.on('click', e => {
+      e.preventDefault();
+      this.dispatchEvent(new CustomEvent('show-register', { bubbles: true }));
+    });
+
     toggleSubmitButtonState();
-  });
-
-  $password.on('input', toggleSubmitButtonState);
-
-  $form.on('submit', e => {
-    e.preventDefault();
-
-    const emailVal = $email.val().trim();
-    const passVal = $password.val();
-
-    if (!emailVal) {
-      updateValidationUI($email, $emailAlert, false, 'Por favor, insira seu e-mail.');
-      return;
-    }
-
-    if (!validateEmail(emailVal)) {
-      updateValidationUI($email, $emailAlert, false, 'Por favor, insira um e-mail válido.');
-      return;
-    }
-
-    updateValidationUI($email, $emailAlert, true);
-
-    this.dispatchEvent(new CustomEvent('login-submitted', {
-      detail: { email: emailVal, password: passVal },
-      bubbles: true,
-    }));
-  });
-
-  $(this).find('#to-register').on('click', e => {
-    e.preventDefault();
-    this.dispatchEvent(new CustomEvent('show-register', { bubbles: true }));
-  });
-
-  toggleSubmitButtonState();
-}
+  }
 }
 
 customElements.define('login-form', LoginForm);

@@ -1,5 +1,6 @@
 import $ from 'jquery';
 import { handleLogin } from '../../hooks/useLogin';
+import { handleRegister } from '../../hooks/useRegister';
 
 class AuthWrapper extends HTMLElement {
   constructor() {
@@ -44,12 +45,27 @@ class AuthWrapper extends HTMLElement {
 
   renderRegister() {
     this.innerHTML = `<register-form></register-form>`;
-    this.querySelector('register-form').addEventListener('show-login', () => {
-      this.renderLogin();
-    });
+    this.querySelector('register-form').addEventListener('register-submitted', async e => {
+      const { name, email, password, passwordConfirmation } = e.detail;
+      const container = this.closest('.container');
 
-    this.querySelector('register-form').addEventListener('register-submitted', e => {
-      console.log('Register submitted:', e.detail);
+      try {
+        await handleRegister({ name, email, password, passwordConfirmation });
+
+        container.dispatchEvent(new CustomEvent('register-result', {
+          detail: { success: true, message: 'Cadastro realizado com sucesso!' },
+          bubbles: true,
+          composed: true,
+        }));
+
+        this.renderLogin();
+      } catch (err) {
+        container.dispatchEvent(new CustomEvent('register-result', {
+          detail: { success: false, message: err.message || 'Erro ao cadastrar usuário.' },
+          bubbles: true,
+          composed: true,
+        }));
+      }
     });
   }
 }

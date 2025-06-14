@@ -8,3 +8,11 @@ export function loginAPI({ email, password }) {
     data: { email, password },
   });
 }
+
+export function registerAPI({ name, email, password, passwordConfirmation }) {
+  return apiCall({
+    url: `${BASE_URL}/register`,
+    method: 'POST',
+    data: { name, email, password, passwordConfirmation },
+  });
+}
