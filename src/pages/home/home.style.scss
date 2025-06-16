@@ -1,4 +1,15 @@
+.board-wrapper-container{
+    height: 100vh;
+}
 .home {
     position: relative;
     height: 100vh;              
+}
+.board {
+    height: 100vh;
+    background-color: whitesmoke;
+}
+.category {
+    height: 80vh !important;
+    border: 1px solid grey;
 }

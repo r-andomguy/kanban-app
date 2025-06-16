@@ -1,6 +1,7 @@
 import $ from 'jquery';
-import { handleCreateBoard } from '../../hooks/userCreateBoard';
-import { useGetBoards, useGetBoard } from '../../hooks/userGetBoards'; 
+import { handleCreateBoard } from '../../hooks/useCreateBoard.js';
+import '../boardComponent/boardComponent.js'
+import { useGetBoards, useGetBoard } from '../../hooks/useGetBoards'; 
 
 class UserBoardWrapper extends HTMLElement {
   constructor() {
@@ -17,19 +18,33 @@ class UserBoardWrapper extends HTMLElement {
   async loadBoards() {
     try {
       this.boards = await useGetBoards();
-
+      console.log(this.boards);
       this.clearError();
-
       const $sidebar = $(this).find('side-bar');
+
       if ($sidebar.length) {
         $sidebar[0].setBoards(this.boards);
       }
 
+      const $container = $(this).find('.board-wrapper-container');
+      const $containerEmpty = $(this).find('.empty-state');
+      const $empty = $containerEmpty.find('empty-board');
+      const $board = $container.find('board-component');
+
       if (this.boards.length > 0) {
         const firstBoard = this.boards[0];
-        this.showBoard(firstBoard);
+        $empty.hide();
+        $board
+          .attr('title', firstBoard.title || 'Board sem título')
+          .attr('board-id', firstBoard.id || '')
+          .css('display', 'block');
 
-        $sidebar[0].setCurrentBoard(firstBoard.id);
+        if ($sidebar.length) {
+          $sidebar[0].setCurrentBoard(firstBoard.id);
+        }
+      } else {
+        $empty.show();
+        $board.css('display', 'none');
       }
     } catch (error) {
       this.showError('Erro ao carregar boards iniciais: ' + (error.message || error));
@@ -40,11 +55,14 @@ class UserBoardWrapper extends HTMLElement {
   render() {
     this.innerHTML = `
       <side-bar></side-bar>
-      <div class="board-wrapper-container position-absolute top-50 start-50 translate-middle">
-        <div class="alert alert-danger mt-2 d-none position-absolute top-0 end-0" role="alert" id="login-error"></div>    
-        <empty-board></empty-board>
-      </div>
-      <create-board-modal></create-board-modal>
+        <div class="board-wrapper-container">
+          <board-component style="display: none;"></board-component>
+        </div>
+        <div class="alert alert-danger mt-2 d-none position-absolute top-0 end-0" role="alert" id="login-error"></div>
+        <div class="position-absolute top-50 start-50 translate-middle empty-state">
+          <empty-board></empty-board>
+        </div>
+        <create-board-modal></create-board-modal>
     `;
   }
 
@@ -53,9 +71,9 @@ class UserBoardWrapper extends HTMLElement {
       const { title } = e.detail;
 
       try {
-        await handleCreateBoard({ title });
+        const createdBoard = await handleCreateBoard({ title });
         this.clearError();
-        this.showBoard({ title });
+        this.showBoard(createdBoard);
       } catch (error) {
         this.showError('Erro ao criar board: ' + (error.message || error));
         console.error('Erro ao criar board:', error);
@@ -76,14 +94,23 @@ class UserBoardWrapper extends HTMLElement {
     });
   }
 
-  showBoard(boardData) {
-    const $container = $(this).find('.board-wrapper-container');
-    $container.empty();
+  async showBoard(boardData) {
+    await customElements.whenDefined('board-component');
 
-    const board = document.createElement('board-component');
-    board.setAttribute('title', boardData.title || 'Board sem título');
-    board.setAttribute('board-id', boardData.id || '');
-    $container.append(board);
+    const $container = $(this).find('.board-wrapper-container');
+    const $empty = $container.find('empty-board');
+    const $board = $container.find('board-component');
+
+    $empty.hide();
+
+    $board
+      .attr('title', boardData.title || 'Board sem tÃ­tulo')
+      .attr('board-id', boardData.id || '')
+      .css('display', 'block');
+
+    if (typeof $board[0].connectedCallback === 'function') {
+      $board[0].connectedCallback();
+    }
   }
 
   showError(message) {

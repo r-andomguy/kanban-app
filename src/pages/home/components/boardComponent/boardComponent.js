@@ -1,58 +1,108 @@
-class Board extends HTMLElement {
+import $ from 'jquery';
+import { handleCreateColumn, useGetAllColumns } from '../../hooks/useCreateColumns';
+
+class BoardComponent extends HTMLElement {
   constructor() {
     super();
-    this.boardId = this.getAttribute('board-id');
-    this.title = this.getAttribute('title') || 'Board sem título';
-    this.columns = []; // Array para armazenar colunas
+    this.boardId = null;
+    this.title = 'Board sem título';
+    this.columns = [];
   }
 
-  connectedCallback() {
-    this.render();
-    this.setupEventListeners();
+  static get observedAttributes() {
+    return ['board-id', 'title'];
   }
 
-  render() {
-    this.innerHTML = `
-      <div class="card h-100">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="card-title mb-0">${this.title}</h5>
-            <button class="btn btn-sm btn-outline-primary" id="create-column-btn">
-              + Coluna
-            </button>
-          </div>
-          
-          <div class="columns-container" style="min-height: 200px;">
-            ${this.columns.length === 0 ? `
-              <div class="text-center py-4 text-muted">
-                Nenhuma coluna criada ainda
-              </div>
-            ` : `
-              <!-- Colunas serão renderizadas aqui -->
-            `}
-          </div>
-        </div>
-      </div>
-    `;
-  }
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue === newValue) return;
 
-  setupEventListeners() {
-    this.querySelector('#create-column-btn').addEventListener('click', () => {
-      this.createNewColumn();
-    });
-  }
-
-  createNewColumn() {
-    const columnName = prompt("Digite o nome da nova coluna:");
-    if (columnName && columnName.trim()) {
-      this.columns.push({
-        id: Date.now(),
-        name: columnName.trim(),
-        cards: []
+    if (name === 'board-id') {
+      this.boardId = newValue;
+      this.loadColumns().then(() => {
+        this.render();
+        this.setupEventListeners();
       });
+    }
+
+    if (name === 'title') {
+      this.title = newValue;
       this.render();
     }
   }
+
+  async connectedCallback() {
+    this.boardId = this.getAttribute('board-id');
+    this.title = this.getAttribute('title') || 'Board sem título';
+
+    if (this.boardId) {
+      await this.loadColumns();
+      this.render();
+      this.setupEventListeners();
+    }
+  }
+
+  async loadColumns() {
+    try {
+      this.columns = await useGetAllColumns({ id: this.boardId });
+    } catch (error) {
+      console.error('Erro ao carregar colunas:', error);
+      this.columns = [];
+    }
+  }
+
+  render() {
+    const columnsHtml = this.columns.length === 0
+      ? `<div class="text-center py-4 text-muted w-100">
+           Nenhuma categoria criada ainda
+         </div>`
+      : this.columns.map(column => `
+          <board-column title="${column.title}" column-id="${column.id}"></board-column>
+        `).join('');
+
+    const html = `
+      <div class="board p-4">
+        <div class="card-body mt-2 h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title mb-0">${this.title}</h5>
+            <button class="btn btn-sm btn-outline-primary" id="create-column-btn" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+              + Coluna
+            </button>
+          </div>
+          <div class="columns-container h-100 d-flex flex-row flex-wrap" style="min-height: 200px;">
+            ${columnsHtml}
+          </div>
+        </div>
+      </div>
+      <create-category-modal></create-category-modal>
+    `;
+
+    $(this).html(html);
+  }
+
+  setupEventListeners() {
+    const $createBtn = $(this).find('#create-column-btn');
+    $createBtn.off('click');
+    $createBtn.on('click', () => {});
+
+    this.removeEventListener('category-created', this._categoryHandler);
+
+    this._categoryHandler = async (event) => {
+      const columnName = event.detail.title;
+      if (!columnName) return;
+
+      try {
+        await handleCreateColumn({ id: this.boardId, title: columnName });
+        await this.loadColumns();
+        this.render();
+        this.setupEventListeners();
+      } catch (error) {
+        console.error('Erro ao criar coluna:', error);
+      }
+    };
+
+    this.addEventListener('category-created', this._categoryHandler);
+  }
+
 }
 
-customElements.define('board-component', Board);
+customElements.define('board-component', BoardComponent);

@@ -7,6 +7,8 @@ import './components/emptyBoard/emptyBoard.js'
 import './components/createBoardModal/createBoardModal.js'
 import './components/userBoard/userBoardWrapper.js'
 import './components/boardComponent/boardComponent.js'
+import './components/createCategoryModal/createCategoryModal.js'
+import './components/boardColumn/boardColumn.js'
 
 export function loadHome() {
   fetch('./pages/home/home.index.html')

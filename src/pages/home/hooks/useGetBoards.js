@@ -3,7 +3,7 @@ import { getAllBoardsAPI, getBoardAPI } from "../../../core/api";
 export async function useGetBoards() {
   try {
     const response = await getAllBoardsAPI({});
-    return response.data || [];
+    return response || [];
   } catch (error) {
     console.error("Erro ao buscar boards:", error);
     return [];
