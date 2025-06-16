@@ -10,5 +10,6 @@ export async function useGetAllColumns({id}) {
 }
 
 export async function useGetColumn({id, columnId}) {
-  await getColumn({id, columnId});
+  const response = await getColumn({id, columnId});
+  return response
 }

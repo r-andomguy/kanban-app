@@ -1,3 +1,5 @@
+import { useGetBoards } from "../../hooks/useGetBoards";
+
 class SideBar extends HTMLElement {
   constructor() {
     super();
@@ -6,7 +8,12 @@ class SideBar extends HTMLElement {
   }
 
   connectedCallback() {
-    this.render();
+    this.loadBoards();
+  }
+
+  async loadBoards() {
+    const boards = await useGetBoards();
+    this.setBoards(boards);
   }
 
   setBoards(boards) {
@@ -31,46 +38,41 @@ class SideBar extends HTMLElement {
   }
 
   render() {
-    this.innerHTML = `
-      <nav class="navbar bg-body-tertiary fixed-top">
-        <div class="container-fluid">
-          <a class="navbar-brand" href="#">Kanban App</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" 
-            data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
-            <div class="offcanvas-header">
-              <h5 class="offcanvas-title">Meus Boards</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-            </div>
-            <div class="offcanvas-body">
-              <ul class="navbar-nav flex-grow-1 pe-3">
-                <li class="nav-item">
-                </li>
-                <li class="nav-item dropdown">
-                  <a class="nav-link dropdown-toggle" href="#" role="button" 
-                    data-bs-toggle="dropdown">
-                    Todos os Boards
-                  </a>
-                  <ul class="dropdown-menu" id="boards-dropdown">
-                    ${this.boards.map(board => `
-                      <li>
-                        <a class="dropdown-item board-link" href="#" 
-                          data-board-id="${board.id}">
-                          ${board.title}
-                        </a>
-                      </li>
-                    `).join('')}
-                  </ul>
-                </li>
+  const dropdownHTML = this.boards.map(board => `
+    <li>
+      <a class="dropdown-item board-link" href="#" data-board-id="${board.id}">
+        ${board.title}
+      </a>
+    </li>
+  `).join('');
+
+  this.innerHTML = `
+    <nav class="navbar bg-body-tertiary fixed-top">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">Kanban App</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasNavbar">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Meus Boards</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+          </div>
+          <div class="offcanvas-body">
+            <div class="dropdown">
+              <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Todos os Boards
+              </button>
+              <ul class="dropdown-menu" id="boards-dropdown">
+                ${dropdownHTML}
               </ul>
             </div>
           </div>
         </div>
-      </nav>
-    `;
-  }
+      </div>
+    </nav>
+  `;
+}
 
   setupEventListeners() {
     this.querySelectorAll('.board-link').forEach(link => {

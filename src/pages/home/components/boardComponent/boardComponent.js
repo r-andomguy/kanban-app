@@ -56,7 +56,7 @@ class BoardComponent extends HTMLElement {
            Nenhuma categoria criada ainda
          </div>`
       : this.columns.map(column => `
-          <board-column title="${column.title}" column-id="${column.id}"></board-column>
+          <board-column title="${column.title}" column-id="${column.id}" board-id="${this.boardId}"></board-column>
         `).join('');
 
     const html = `
@@ -65,10 +65,10 @@ class BoardComponent extends HTMLElement {
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h5 class="card-title mb-0">${this.title}</h5>
             <button class="btn btn-sm btn-outline-primary" id="create-column-btn" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-              + Coluna
+              + Categoria
             </button>
           </div>
-          <div class="columns-container h-100 d-flex flex-row flex-wrap" style="min-height: 200px;">
+          <div class="columns-container d-flex flex-row overflow-auto gap-2" style="min-height: 200px; white-space: nowrap;">
             ${columnsHtml}
           </div>
         </div>

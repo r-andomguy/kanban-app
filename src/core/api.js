@@ -79,6 +79,14 @@ export function createTask({id, category_id, title, description, status}) {
   });
 }
 
+export function updateTask({id, category_id, title, description, status, task_id}) {
+  return apiCall({
+    url: `${BASE_URL}/boards/${id}/categories/${category_id}/tasks/${task_id}`,
+    method: 'PUT',
+    data: { id, category_id, title, description, status, task_id },
+  });
+}
+
 export function getAllTasks({id, category_id}) {
   return apiCall({
     url: `${BASE_URL}/boards/${id}/categories/${category_id}/tasks`,
