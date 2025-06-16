@@ -23,7 +23,10 @@ class TaskController extends ApiController
 
     public function index(Board $board, Category $category): JsonResponse
     {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
+
         $tasks = $this->taskService->getAll($category);
 
         return response()->json(TaskResource::collection($tasks));
@@ -31,7 +34,10 @@ class TaskController extends ApiController
 
     public function show(Board $board, Category $category, Task $task): JsonResponse
     {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
+
         $task = $this->taskService->getById($task->id,  $category);
         
         if (!$task) {
@@ -43,7 +49,10 @@ class TaskController extends ApiController
 
     public function store(Request $request, Board $board, Category $category): JsonResponse
     {
-        $this->authorize( $board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
+
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
@@ -58,7 +67,10 @@ class TaskController extends ApiController
 
     public function update(Request $request, Board $board, Category $category, Task $task): JsonResponse
     {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
+
 
         $data = $request->validate([
             'title' => 'sometimes|required|string|max:255',
@@ -73,7 +85,9 @@ class TaskController extends ApiController
 
     public function destroy(Board $board, Category $category, Task $task): JsonResponse
     {
-        $this->authorize( $board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
             
         if ($task->category_id !== $category->id) {
             return response()->json(['message' => 'Task not found in this category.'], 404);
@@ -86,8 +100,10 @@ class TaskController extends ApiController
 
     private function authorize(Board $board)
     {
-        if ($board->user_id !== Auth::id()) {
-             return response()->json(['message' => 'Unathorized']);
+        if ($board->toArray()['user_id'] !== Auth::id()) {
+             return false;
         }
+
+        return true;
     }
 }

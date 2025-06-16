@@ -8,7 +8,6 @@ class Category extends Model {
 
     protected $fillable = [
         'title',
-        'order',
         'board_id'
     ];
 

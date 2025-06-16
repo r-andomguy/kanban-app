@@ -51,7 +51,9 @@ class BoardController extends ApiController {
     }
     
     public function update(Request $request, Board $board){
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
        
         $data = $request->validate([
            'title' => 'required|string|max:255',
@@ -63,7 +65,9 @@ class BoardController extends ApiController {
     }
 
     public function destroy(Board $board): JsonResponse {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
         $this->boardService->delete($board);
         
         return response()->json(null, 204);
@@ -71,8 +75,10 @@ class BoardController extends ApiController {
 
     private function authorize(Board $board)
     {
-        if ($board->user_id !== Auth::id()) {
-             return response()->json(['message' => 'Unathorized']);
+        if ($board->toArray()['user_id'] !== Auth::id()) {
+             return false;
         }
+
+        return true;
     }
 }

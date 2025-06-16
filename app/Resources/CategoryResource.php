@@ -16,7 +16,6 @@ class CategoryResource extends JsonResource
             'id' => $this->id,
             'created_at' => $this->created_at,
             'title' => $this->title,
-            'order' => $this->order,
             'board' => $this->board_id,
             'tasks' => TaskResource::collection($this->whenLoaded('tasks')),
         ];

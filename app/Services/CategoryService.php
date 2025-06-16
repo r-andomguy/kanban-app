@@ -26,7 +26,6 @@ class CategoryService {
 
         $category = Category::create([
             'title' => $data['title'],
-            'order' => $data['order'],
             'board_id' => $board->attributesToArray()['id']
         ]);
         
@@ -46,7 +45,6 @@ class CategoryService {
 
         $category->update([
             'title' => $data['title'] ?? $category->title,
-            'order' => $data['order'] ?? $category->order,
         ]);
 
         return $category->fresh(); 

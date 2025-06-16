@@ -23,7 +23,10 @@ class CategoryController extends ApiController
 
     public function index(Board $board): JsonResponse
     {
-        $this->authorize($board); 
+        if(!$this->authorize($board)){
+            response()->json(['message' => 'Unathorized']);
+        } 
+        
         $categories = $this->categoryService->getAll($board);
         
         return response()->json(CategoryResource::collection($categories));
@@ -31,7 +34,9 @@ class CategoryController extends ApiController
 
     public function show(Board $board, int $id): JsonResponse
     {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
         $category = $this->categoryService->getById($board, $id);
 
         if (!$category) {
@@ -43,11 +48,12 @@ class CategoryController extends ApiController
 
     public function store(Request $request, Board $board)
     {
-        $this->authorize($board);
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'order' => 'nullable|integer',
         ]);
 
         $category = $this->categoryService->create($board, $data);
@@ -57,11 +63,12 @@ class CategoryController extends ApiController
 
     public function update(Request $request, Board $board, int $id): JsonResponse
     {
-        $this->authorize($board);
+       if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
 
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'order' => 'nullable|integer',
         ]);
 
         $category = $this->categoryService->update($board, $data, $id);
@@ -75,8 +82,12 @@ class CategoryController extends ApiController
 
     public function destroy(Board $board, int $id): JsonResponse
     {
+        if(!$this->authorize($board)){
+            return response()->json(['message' => 'Unathorized']);
+        }
+
         $category = Category::where('id', $id)
-        ->where('board_id', $board->id)
+        ->where('board_id', $board->toArray()['id'])
         ->first();
 
         if (!$category) {
@@ -90,8 +101,10 @@ class CategoryController extends ApiController
 
     private function authorize(Board $board)
     {
-        if ($board->user_id !== Auth::id()) {
-             return response()->json(['message' => 'Unathorized']);
+        if ($board->toArray()['user_id'] !== Auth::id()) {
+             return false;
         }
+
+        return true;
     }
 }
